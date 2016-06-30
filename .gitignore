@@ -1,33 +1,189 @@
-# History files
-.Rhistory
-.Rapp.history
+#
+#Steven Porter
+#
+#Master's Thesis Modeling Script
+#Updated 4/29/16
+#
+#
 
-# Session Data files
-.RData
+#install.packages("reshape")
+#install.packages("lme4", dependencies = T)
+#install.packages("lmerTest", dependencies = T)
+#install.packages("nlme")
+#install.packages("ggplot2")
+#install.packages("multcomp")
 
-# Example code in package build process
-*-Ex.R
+#Export Transformaed Data
+#write.table(MAHLM, file="MAHLM.txt", quote=F, row.names=F, sep = ",")
 
-# Output files from R CMD build
-/*.tar.gz
+library(lme4)
+library(lmerTest)
+library(multcomp)
+#library(reshape)
 
-# Output files from R CMD check
-/*.Rcheck/
+MAHLM <- read.csv("C:/Users/snpor/OneDrive/Scool Documents/Master's Thesisis Folder/Data/MAHLM.csv")
 
-# RStudio files
-.Rproj.user/
+#LongMAHLM = melt(MAHLM,
+#                 id = c("Participant","Condition","Ethnicity","Education","Timing.Page.Submit","Age","Gender","Believe_Cat","Believe_Quant"),
+#                 measure = c("Image1","Image2","Image3","Image4","Image5","Image6","Image7","Image8","Image9","Image10","Image11","Image12","Image13","Image14","Image15","Image16","Image17","Image18","Image19","Image20","Image21","Image22","Image23","Image24","Image25","Image26","Image27","Image28","Image29","Image30","Image31","Image32","Image33","Image34","Image35","Image36","Image37","Image38","Image39","Image40","Image41","Image42","Image43","Image44","Image45","Image46","Image47","Image48","Image49","Image50","Image51","Image52","Image53","Image54","Image55","Image56","Image57","Image58","Image59","Image60","Image61","Image62","Image63","Image64","Image65","Image66","Image67","Image68","Image69","Image70","Image71","Image72","Image73","Image74","Image75"))
 
-# produced vignettes
-vignettes/*.html
-vignettes/*.pdf
+#LongMAHLM$value -> LongMAHLM$Image
+#LongMAHLM -> MAHLM
 
-# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
-.httr-oauth
+#MAHLM$Condition.f <- factor(MAHLM$Condition)
+#MAHLM$Condition[1:15]
+#is.factor(MAHLM$Condition.f)
+#is.factor(MAHLM$Condition)
+table(MAHLM$Condition)
 
-# knitr and R markdown default cache directories
-/*_cache/
-/cache/
+MAHLM$Type = factor(MAHLM$Type,
+                    levels = c(1,2,3),
+                    labels = c("Nat","Neut","Urb"))
 
-# Temporary files created by R markdown
-*.utf8.md
-*.knit.md
+MAHLM$Condition = factor(MAHLM$Condition,
+                    levels = c(1,2,3),
+                    labels = c("Nat","Neut","Urb"))
+
+MAHLM$Sex = factor(MAHLM$Gender,
+                         levels = c(1,2),
+                         labels = c("Male","Female"))
+
+MAHLM$Education = factor(MAHLM$Education,
+                         levels = c(1,2,3,4,5,6,7,8),
+                         labels = c("High.School(No Degree)","High.School.Grad","Some.College","Associate's.Degree","Bachelor's.Degree","Master's.Degree","Professional.Degree","Doctorate"))
+
+MAHLM$Ethnicity = factor(MAHLM$Ethnicity,
+                         levels = c(1,2,3,4,5,6,7,8),
+                         labels = c("White/Caucasian","Black/African.American","Asian/Asian.American","Hispanic/Latino/Chicano","Native.American/Alaska.Native","Native.Hawaiian/Pacific.Islander","Multiple.Ethnicities","Other"))
+
+levels = c("Image","Type","Participant","Condition")
+#contrasts(MAHLM$Condition)<-contr.sum(3) 
+#contrasts(MAHLM$Type)<-contr.sum(3) 
+
+#Boxplot
+
+boxplot(MAHLM$Image ~ MAHLM$Type, main = "MAHLM")
+
+#Models
+
+Model1 = lmer(Image ~ Type + Condition*Type + Believe_Quant + (Type|Participant) + Education,
+             data = MAHLM,
+             REML = T)
+summary(Model1)
+
+
+
+
+
+#Old Code
+
+
+
+#Model2 = lmer(Image ~ 1 + (1|Type) + (1|Condition),
+#              data = MAHLM,
+#              REML = F)
+#summary(Model2)
+#
+#Model3 = lmer(Image ~ 1 + (1|Type:Condition),
+#              data = MAHLM,
+#              REML = F)
+#summary(Model3)
+#coefs <- data.frame(coef(summary(Model1)))
+#coefs$p.z <- 2 * (1 - pnorm(abs(coefs$t.value)))
+#coefs$p.Satt <- coef(summary(Model1))[, 5]
+#coefs
+#
+#Model4 = lmer(Image ~ 1 + (1|Participant:Condition),
+#              data = MAHLM,
+#              REML = F)
+#summary(Model4)
+#
+
+#Model5 = lmer(Image ~ Type + (1+ Type|Participant:Condition),
+#              data = MAHLM,
+#              REML = F)
+#summary(Model5)
+
+#
+#General Least Squares Model
+#model1 = gls(Image ~ 1,
+#             data = MAHLM,
+#             method = "ML",
+#             na.action = "na.omit")
+#summary(model1)
+
+#OLS Model
+
+#lm()
+
+#HLM Model
+#model2 = lme(Image ~ 1,
+#             data = MAHLM,
+#             method = "ML",
+#             na.action = "na.omit",
+#             random = ~1|Participant)
+#summary(model2)
+
+#anova(model1,model2)
+#
+#model2.1 = lme(Image ~ 1,
+#             data = MAHLM,
+#             method = "ML",
+#             na.action = "na.omit",
+#             random = list(~1|Participant, ~1|Type))
+#
+#anova(model2,model2.1)
+#
+#model2.2 = lme(Image ~ 1,
+#               data = MAHLM,
+#               method = "ML",
+#               na.action = "na.omit",
+#               random = list(~1|Condition, ~1|Participant, ~1|Type_C))
+
+#summary(model2.2)
+#anova(model2.1,model2.2)
+#
+#model2.3 = lme(Image ~ 1,
+#               data = MAHLM,
+#               method = "ML",
+#               na.action = "na.omit",
+#               random = list(~1|Condition, ~1|Participant))
+
+#anova(model2.3,model2)
+
+#model2.4 = lme(Image ~ 1,
+#               data = MAHLM,
+#               method = "ML",
+#               na.action = "na.omit",
+#               random = list(~1|Condition, ~1|Participant, ~1|Type))
+
+#anova(model2.2,model2.4)
+
+#model2.5 = lme(Image ~ 1,
+#               data = MAHLM,
+#               method = "ML",
+#               na.action = "na.omit",
+#               random = list(~1|Participant, ~1|Type_C))
+#summary(model2.5)
+
+#anova(model2,model2.5)
+#anova(model2,model2.1)
+#anova(model2.1,model2.2)
+#anova(model2.1,model2.3)
+#anova(model2.1,model2.4)
+
+#?lme
+#install.packages("HLMdiag")
+#library(HLMdiag)
+#qplot(model2.2)
+#?HLMdiag
+#HLMresid(model2.2, level(1), EB)
+
+#Second Attempt
+#install.packages("lme4")
+#library("lme4")
+#Model3 <- lmer(Image~Condition + (1|Type_C) + (1|Participant), MAHLM)
+#summary(Model3)
+#anova(Model3,model2,model2.1,model2.2,model2.3,model2.4,model2.5)
+#anova(Model3,model2.2)
+#Model3
